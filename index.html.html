@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Sketchfab Viewer API — Minimalist Japanese Style Chair</title>
+  <style>
+    .container { max-width: 1100px; margin: 24px auto; padding: 0 16px; font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; }
+    .iframe-wrap { position: relative; width: 100%; padding-bottom: 56.25%; }
+    #api-frame { position: absolute; top:0; left:0; width:100%; height:100%; border:0; }
+    .controls { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+    .controls button { padding: 10px 14px; border-radius: 10px; border: 1px solid #ddd; background: #f7f7f7; cursor: pointer; }
+    .controls button:hover { background: #eee; }
+  </style>
+  <!-- Load the latest viewer API (served by Sketchfab) -->
+  <script type="text/javascript" src="https://static.sketchfab.com/api/sketchfab-viewer-1.12.1.js"></script>
+</head>
+<body>
+  <div class="container">
+    <h1>Sketchfab Viewer API — Minimalist Japanese Style Chair</h1>
+    <div class="iframe-wrap">
+      <iframe id="api-frame" title="Sketchfab Viewer" allow="autoplay; fullscreen; xr-spatial-tracking" src=""></iframe>
+    </div>
+
+    <div class="controls">
+      <button id="btn-start">Start Viewer</button>
+      <button id="btn-stop">Stop Viewer</button>
+      <button id="btn-annotate">Go to Annotation #1</button>
+      <button id="btn-wire">Toggle Wireframe</button>
+      <button id="btn-screenshot">Download Screenshot</button>
+      <button id="btn-autospin">Toggle Autospin</button>
+    </div>
+  </div>
+
+  <script>
+    // Your model UID from its URL
+    var uid = "376e523d4ff24309bd38547861c00fca";
+    var iframe = document.getElementById('api-frame');
+    var client = new Sketchfab('1.12.1', iframe);
+    var api = null;
+    var spinning = false;
+    var wired = false;
+
+    function initViewer() {
+      client.init(uid, {
+        success: function onSuccess(instance) {
+          api = instance;
+          api.start();
+          api.addEventListener('viewerready', function() {
+            console.log('Viewer ready!');
+          });
+        },
+        error: function onError() {
+          console.error('Sketchfab API error');
+        },
+        // Optional Viewer params
+        autostart: 1,
+        ui_infos: 1,
+        ui_controls: 1,
+        transparent: 0
+      });
+    }
+
+    // Buttons
+    document.getElementById('btn-start').addEventListener('click', function(){
+      if (!api) initViewer();
+      else api.start();
+    });
+
+    document.getElementById('btn-stop').addEventListener('click', function(){
+      if (api) api.stop();
+    });
+
+    document.getElementById('btn-annotate').addEventListener('click', function(){
+      if (api) api.gotoAnnotation(0); // first annotation if it exists
+    });
+
+    document.getElementById('btn-wire').addEventListener('click', function(){
+      if (!api) return;
+      wired = !wired;
+      api.setWireframe(wired);
+    });
+
+    document.getElementById('btn-screenshot').addEventListener('click', function(){
+      if (!api) return;
+      api.getScreenshot( 'image/png', 0.9, function(err, result) {
+        if (!err) {
+          var a = document.createElement('a');
+          a.href = result;
+          a.download = 'sketchfab_screenshot.png';
+          a.click();
+        }
+      });
+    });
+
+    document.getElementById('btn-autospin').addEventListener('click', function(){
+      if (!api) return;
+      spinning = !spinning;
+      api.setAutospin(spinning ? 0.5 : 0.0);
+    });
+
+    // Initialize on load
+    initViewer();
+  </script>
+</body>
+</html>
